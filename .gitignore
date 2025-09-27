@@ -1,3 +1,4 @@
 # Ignore the custom virtual environment folder
 tsl/
 .idea/
+model.onnx/
