@@ -2,7 +2,15 @@ import numpy as np
 
 # Landmark indices from MediaPipe
 THUMB_TIP = 4
+
 INDEX_FINGER_TIP = 8
+INDEX_FINGER_PIP = 6
+MIDDLE_FINGER_TIP = 12
+MIDDLE_FINGER_PIP = 10
+RING_FINGER_TIP = 16
+RING_FINGER_PIP = 14
+PINKY_TIP = 20
+PINKY_PIP = 18
 WRIST = 0
 
 class VolumeControlGesture:
@@ -71,3 +79,113 @@ class VolumeControlGesture:
             self.initial_pinch_y = None
             
         return action
+
+class ScrollGesture:
+    """
+    Detects an index finger pointing up gesture and translates vertical hand movement
+    into scroll up/down commands.
+    """
+    def __init__(self, movement_threshold=20, pointing_up_ratio_threshold=0.7):
+        """
+        Initializes the Scroll Gesture detector.
+
+        Args:
+            movement_threshold (float): The minimum vertical pixel movement required
+                                        to trigger a scroll action.
+            pointing_up_ratio_threshold (float): A value between 0 and 1 to determine
+                                                 if the index finger is pointing up
+                                                 relative to other fingers.
+        """
+        self.movement_threshold = movement_threshold
+        self.pointing_up_ratio_threshold = pointing_up_ratio_threshold
+
+        self.is_scrolling = False
+        self.initial_scroll_y = None
+
+    def _is_pointing_up(self, landmarks):
+        """
+        Checks if the index finger is extended and pointing upwards, while other
+        fingers are curled.
+        """
+        index_tip = landmarks[INDEX_FINGER_TIP]
+        index_pip = landmarks[INDEX_FINGER_PIP]
+
+        # 1. Check if index finger is straight and pointing up
+        if index_tip[1] >= index_pip[1]:
+            return False # Y is inverted, so smaller Y is higher
+
+        # 2. Check if other fingers are curled (their tips are below the index PIP joint)
+        other_finger_tips = [
+            landmarks[THUMB_TIP],
+            landmarks[MIDDLE_FINGER_TIP],
+            landmarks[RING_FINGER_TIP],
+            landmarks[PINKY_TIP]
+        ]
+
+        curled_fingers = sum(1 for tip in other_finger_tips if tip[1] > index_pip[1])
+
+        return (curled_fingers / len(other_finger_tips)) >= self.pointing_up_ratio_threshold
+
+    def __call__(self, landmarks):
+        """
+        Processes hand landmarks to detect scroll gestures.
+
+        Args:
+            landmarks (np.array): A (21, 2) array of hand landmark coordinates.
+
+        Returns:
+            str: 'SCROLL_UP', 'SCROLL_DOWN', or None.
+        """
+        action = None
+        if self._is_pointing_up(landmarks):
+            if not self.is_scrolling:
+                self.is_scrolling = True
+                self.initial_scroll_y = landmarks[WRIST, 1] # Use wrist for stable Y reference
+            else:
+                current_y = landmarks[WRIST, 1]
+                delta_y = self.initial_scroll_y - current_y
+
+                if delta_y > self.movement_threshold:
+                    action = 'SCROLL_UP'
+                elif delta_y < -self.movement_threshold:
+                    action = 'SCROLL_DOWN'
+        else:
+            self.is_scrolling = False
+            self.initial_scroll_y = None
+
+        return action
+
+class ClosedFistGesture:
+    """
+    Detects a closed fist gesture.
+    """
+    def _is_fist_closed(self, landmarks):
+        """
+        Checks if the fist is closed by verifying that the fingertips are curled
+        in past their middle joints.
+        """
+        try:
+            # Check if finger tips are below their respective PIP joints.
+            # A lower 'y' value is higher on the screen.
+            index_closed = landmarks[INDEX_FINGER_TIP][1] > landmarks[INDEX_FINGER_PIP][1]
+            middle_closed = landmarks[MIDDLE_FINGER_TIP][1] > landmarks[MIDDLE_FINGER_PIP][1]
+            ring_closed = landmarks[RING_FINGER_TIP][1] > landmarks[RING_FINGER_PIP][1]
+            pinky_closed = landmarks[PINKY_TIP][1] > landmarks[PINKY_PIP][1]
+
+            return all([index_closed, middle_closed, ring_closed, pinky_closed])
+        except IndexError:
+            return False
+
+    def __call__(self, landmarks):
+        """
+        Processes hand landmarks to detect a closed fist.
+
+        Args:
+            landmarks (np.array): A (21, 2) array of hand landmark coordinates.
+
+        Returns:
+            str: 'DND' or None.
+        """
+        if self._is_fist_closed(landmarks):
+            return 'DND'
+        return None
