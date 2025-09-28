@@ -1,6 +1,7 @@
 import requests
 import time
 import subprocess
+import json
 
 # IMPORTANT: Replace with your laptop's local WiFi IP address and the port your server is running on.
 # Example: "http://192.168.1.15:8000"
@@ -10,34 +11,55 @@ API_BASE_URL = "https://unburnt-franklin-exciting.ngrok-free.dev"
 DEVICE_ID = "my-android-phone"
 
 
-def set_silent_mode(state: bool):
+def toggle_silent_mode():
     """
-    Uses Termux:API to set all critical volume streams to 0 for silence,
-    or restores them to a default level. This is a reliable alternative to DND.
+    Checks the phone's current volume state and does the opposite.
+    If the phone is currently loud, it silences it.
+    If the phone is currently silent, it restores volume.
     """
-    # The list of audio streams we want to control.
-    # 'music', 'ring', 'notification', 'system', 'alarm'
-    streams = ["ring", "notification", "music", "system"]
+    print("ACTION: Toggling Silent Mode...")
 
-    if state:
-        # State is True, so we want to SILENCE the phone.
-        print("ACTION: Setting Silent Mode ON")
-        volume_level = "0"
-    else:
-        # State is False, so we want to UNSILENCE the phone.
-        print("ACTION: Setting Silent Mode OFF")
-        volume_level = "10"  # Set to a reasonable default (max is 15).
+    try:
+        # --- Step 1: Get the current volume state from Termux ---
+        # We use check_output to capture the JSON string the command returns.
+        current_state_json = subprocess.check_output(["termux-volume"])
 
-    # Loop through each stream and set its volume.
-    for stream in streams:
-        try:
-            print(f"...setting {stream} volume to {volume_level}")
-            subprocess.run(["termux-volume", stream, volume_level])
-        except FileNotFoundError:
-            print(f"Error: 'termux-volume' command not found. Is Termux:API installed?")
-            return  # Exit the function if the command doesn't exist
+        # --- Step 2: Parse the JSON to read the volume levels ---
+        # The output is a list of dictionaries, e.g., [{"stream": "ring", "volume": 10}, ...]
+        volume_streams = json.loads(current_state_json)
 
-    print("ACTION: Volume control finished.")
+        # Find the current volume of the 'ring' stream.
+        current_ring_volume = 0
+        for stream in volume_streams:
+            if stream.get("stream") == "ring":
+                current_ring_volume = stream.get("volume", 0)
+                break  # Stop once we've found it
+
+        print(f"...Current ring volume is {current_ring_volume}")
+
+        # --- Step 3: Decide whether to mute or unmute ---
+        streams_to_change = ["ring", "notification", "music", "system"]
+
+        if current_ring_volume > 0:
+            # The phone is NOT silent, so our action is to SILENCE it.
+            print("...Phone is loud. Setting to SILENT.")
+            new_volume_level = "0"
+        else:
+            # The phone IS silent, so our action is to UNSILENCE it.
+            print("...Phone is silent. Setting to LOUD.")
+            new_volume_level = "10"  # Restore to a default volume
+
+        # --- Step 4: Apply the new volume level ---
+        for stream in streams_to_change:
+            subprocess.run(["termux-volume", stream, new_volume_level])
+
+        print("ACTION: Toggle complete.")
+
+    except (FileNotFoundError, subprocess.CalledProcessError, json.JSONDecodeError) as e:
+        print(f"Error getting or parsing volume state: {e}")
+        # Fallback to a simple mute if we can't read the state.
+        for stream in ["ring", "notification"]:
+            subprocess.run(["termux-volume", stream, "0"])
 
 
 def set_volume(level: float):
@@ -74,10 +96,10 @@ def poll_for_commands():
                 value = command.get("value")
 
                 # The server sends an action, and we decide which function to call.
-                if action == "set_dnd":  # Your server can still send "set_dnd" for simplicity.
-                    set_silent_mode(value)
-                elif action == "set_volume":
-                    set_volume(value)
+                if action == "set_dnd" or action == "set-dnd":  # Your server can still send "set_dnd" for simplicity.
+                    toggle_silent_mode()
+                # elif action == "set_volume":
+                #     set_volume(value)
                 elif action == "find_my_device":
                     find_my_device()
 
