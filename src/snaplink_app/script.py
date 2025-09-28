@@ -20,7 +20,17 @@ def perform_action(action):
             "action": "set_dnd",
             "value": 0
         }
-        requests.post("https://unburnt-franklin-exciting.ngrok-free.dev/command/send", json=req_json)
+        # requests.post("https://unburnt-franklin-exciting.ngrok-free.dev/command/send", json=req_json)
+    elif action == 'ROCK_AND_ROLL':
+        print("🤘 Rock and Roll gesture detected! Sending POST request...")
+        req_json = {
+            "device_id": "my-android-phone",
+            "action": "rock_and_roll_triggered",
+            "timestamp": "2025-09-28T00:00:00Z"
+        }
+        
+        # requests.post("https://unburnt-franklin-exciting.ngrok-free.dev/command/send", json=req_json)
+        
 
 
 if __name__ == "__main__":

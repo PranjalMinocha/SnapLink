@@ -7,7 +7,7 @@ from model.blazebase import resize_pad, denormalize_detections
 from model.blazepalm import BlazePalm
 from model.blazehand_landmark import BlazeHandLandmark
 
-from util.gestures import VolumeControlGesture, ScrollGesture, ClosedFistGesture
+from util.gestures import VolumeControlGesture, ScrollGesture, ClosedFistGesture, RockAndRollGesture
 from util.auth_face import authenticate_face
 
 class GestureRecognizer:
@@ -48,10 +48,11 @@ class GestureRecognizer:
         self.volume_gesture = VolumeControlGesture()
         self.scroll_gesture = ScrollGesture()
         self.dnd_gesture = ClosedFistGesture()
+        self.rock_gesture = RockAndRollGesture()
 
         # --- State Management & Filtering ---
         self.SMOOTHING_ALPHA = 0.4
-        self.ACTION_THRESHOLDS = {'VOLUME': 5, 'SCROLL': 5, 'DND': 20}
+        self.ACTION_THRESHOLDS = {'VOLUME': 5, 'SCROLL': 5, 'DND': 20, 'ROCK_AND_ROLL': 1}
         self.GRACE_PERIOD_FRAMES = 7
         
         self._reset_state()
@@ -122,33 +123,38 @@ class GestureRecognizer:
                     elif self.dnd_counter > 0:
                         pass # In DND formation, do nothing else
                     else:
-                        # Process continuous gestures if not doing DND
-                        current_frame_action = self.volume_gesture(self.smoothed_landmarks) or self.scroll_gesture(self.smoothed_landmarks)
-
-                        # 3. Temporal Filtering & Hysteresis
-                        action_type = current_frame_action.split('_')[0] if current_frame_action else None
-
-                        if current_frame_action:
-                            self.grace_period_counter = 0
-                            if current_frame_action == self.candidate_action:
-                                self.action_counter += 1
-                            else:
-                                self.candidate_action = current_frame_action
-                                self.action_counter = 1
-
-                            if action_type and not self.active_action:
-                                if self.action_counter >= self.ACTION_THRESHOLDS.get(action_type, 10):
-                                    print(f"Action Activated: {action_type}")
-                                    self.active_action = action_type
+                        # Check for rock and roll gesture first (one-time action)
+                        rock_action = self.rock_gesture(self.smoothed_landmarks)
+                        if rock_action:
+                            action_to_perform = rock_action
                         else:
-                            if self.active_action:
-                                self.grace_period_counter += 1
-                                if self.grace_period_counter > self.GRACE_PERIOD_FRAMES:
-                                    print(f"Action Deactivated: {self.active_action}")
-                                    self._reset_state()
+                            # Process continuous gestures if not doing rock gesture
+                            current_frame_action = self.volume_gesture(self.smoothed_landmarks) or self.scroll_gesture(self.smoothed_landmarks)
 
-                        if self.active_action in ['VOLUME', 'SCROLL']:
-                            action_to_perform = current_frame_action
+                            # 3. Temporal Filtering & Hysteresis
+                            action_type = current_frame_action.split('_')[0] if current_frame_action else None
+
+                            if current_frame_action:
+                                self.grace_period_counter = 0
+                                if current_frame_action == self.candidate_action:
+                                    self.action_counter += 1
+                                else:
+                                    self.candidate_action = current_frame_action
+                                    self.action_counter = 1
+
+                                if action_type and not self.active_action:
+                                    if self.action_counter >= self.ACTION_THRESHOLDS.get(action_type, 10):
+                                        print(f"Action Activated: {action_type}")
+                                        self.active_action = action_type
+                            else:
+                                if self.active_action:
+                                    self.grace_period_counter += 1
+                                    if self.grace_period_counter > self.GRACE_PERIOD_FRAMES:
+                                        print(f"Action Deactivated: {self.active_action}")
+                                        self._reset_state()
+
+                            if self.active_action in ['VOLUME', 'SCROLL']:
+                                action_to_perform = current_frame_action
 
             if not hand_detected_in_frame:
                 self._reset_state()
