@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from blazebase import BlazeLandmark, BlazeBlock
+from model.blazebase import BlazeLandmark, BlazeBlock
 
 class BlazeHandLandmark(BlazeLandmark):
     """The hand landmark model from MediaPipe.

@@ -3,8 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from blazebase import BlazeDetector, BlazeBlock
-
+from model.blazebase import BlazeDetector, BlazeBlock
 
 class BlazePalm(BlazeDetector):
     """The palm detection model from MediaPipe. """
