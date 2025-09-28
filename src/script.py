@@ -16,11 +16,11 @@ def perform_action(action):
     elif action == 'DND': 
         pyautogui.press('volumemute')
         req_json = {
-            "device_id": "purvansh-iphone",
+            "device_id": "my-android-phone",
             "action": "set_dnd",
-            "value": True
+            "value": 0
         }
-        requests.post("http://127.0.0.1:8000/command/send", json=req_json)
+        requests.post("https://unburnt-franklin-exciting.ngrok-free.dev/command/send", json=req_json)
 
 
 if __name__ == "__main__":
