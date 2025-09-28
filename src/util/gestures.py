@@ -195,3 +195,56 @@ class ClosedFistGesture:
         if self._is_fist_closed(landmarks):
             return 'DND'
         return None
+
+
+class RockAndRollGesture:
+    """
+    Detects a rock and roll gesture (thumb and pinky extended, other fingers curled).
+    """
+    def __init__(self, threshold_frames=15):
+        """
+        Initialize the rock and roll gesture detector.
+        
+        Args:
+            threshold_frames (int): Number of consecutive frames needed to trigger action
+        """
+        self.threshold_frames = threshold_frames
+        self.gesture_counter = 0
+
+    def _is_rock_and_roll(self, landmarks):
+        """
+        Checks if thumb and pinky are extended while other fingers are curled.
+        """
+        try:
+            # Check if middle and ring fingers are curled (tips below PIP joints)
+            index_curled = landmarks[INDEX_FINGER_TIP][1] > landmarks[INDEX_FINGER_PIP][1]
+            middle_curled = landmarks[MIDDLE_FINGER_TIP][1] > landmarks[MIDDLE_FINGER_PIP][1]
+            ring_curled = landmarks[RING_FINGER_TIP][1] > landmarks[RING_FINGER_PIP][1]
+            
+            # Check if thumb and pinky are extended (tips above PIP joints)
+            thumb_extended = landmarks[THUMB_TIP][1] < landmarks[INDEX_FINGER_PIP][1]
+            pinky_extended = landmarks[PINKY_TIP][1] < landmarks[PINKY_PIP][1]
+            
+            return all([index_curled, middle_curled, ring_curled, thumb_extended, pinky_extended])
+        except IndexError:
+            return False
+
+    def __call__(self, landmarks):
+        """
+        Processes hand landmarks to detect rock and roll gesture.
+
+        Args:
+            landmarks (np.array): A (21, 2) array of hand landmark coordinates.
+
+        Returns:
+            str: 'ROCK_AND_ROLL' or None.
+        """
+        if self._is_rock_and_roll(landmarks):
+            self.gesture_counter += 1
+            if self.gesture_counter >= self.threshold_frames:
+                self.gesture_counter = 0  # Reset after triggering
+                return 'ROCK_AND_ROLL'
+        else:
+            self.gesture_counter = 0
+        
+        return None

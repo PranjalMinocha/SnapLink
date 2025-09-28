@@ -5,7 +5,7 @@ import json
 
 # IMPORTANT: Replace with your laptop's local WiFi IP address and the port your server is running on.
 # Example: "http://192.168.1.15:8000"
-API_BASE_URL = "https://unburnt-franklin-exciting.ngrok-free.dev"
+API_BASE_URL = "https://semipathologically-immiscible-bill.ngrok-free.dev"
 
 # This ID must match what your web app sends as the target device.
 DEVICE_ID = "my-android-phone"
