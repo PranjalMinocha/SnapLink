@@ -11,3 +11,7 @@ class DeviceCommand(BaseModel):
     device_id: str  # A unique identifier for the target device, e.g., "purvansh-iphone"
     action: ActionType
     value: float | bool | None = None # An optional value, e.g., 0.8 for volume or True for DND
+
+
+class AlertPayload(BaseModel):
+    message: str

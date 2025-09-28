@@ -59,9 +59,8 @@ def send_pushover_message(message):
 
 
 @app.post("/alert")
-async def alert(request: Request):
-    payload = await request.json()
-    message = payload.get("message", "").lower()  
+async def alert(payload: models.AlertPayload):
+    message = payload.message.lower()
 
     if message == "sound":
         send_pushover_message("Sound detected!")
