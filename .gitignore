@@ -2,3 +2,6 @@
 tsl/
 .idea/
 model.onnx/
+.venv/
+src/__pycache__/
+template.json
