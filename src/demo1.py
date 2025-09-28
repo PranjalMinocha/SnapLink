@@ -14,11 +14,11 @@ torch.set_grad_enabled(False)
 
 
 pose_detector = BlazePose().to(gpu)
-pose_detector.load_weights("blazepose.pth")
-pose_detector.load_anchors("anchors_pose.npy")
+pose_detector.load_weights("src/blazepose.pth")
+pose_detector.load_anchors("src/anchors_pose.npy")
 
 pose_regressor = BlazePoseLandmark().to(gpu)
-pose_regressor.load_weights("blazepose_landmark.pth")
+pose_regressor.load_weights("src/blazepose_landmark.pth")
 
 
 WINDOW='test'
