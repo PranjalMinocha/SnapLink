@@ -64,6 +64,7 @@ class GestureRecognizer:
         self.active_action = None
         self.dnd_counter = 0
         self.grace_period_counter = 0
+        self.scroll_gesture.reset()
 
     def process_frame(self, frame_bgr):
         """

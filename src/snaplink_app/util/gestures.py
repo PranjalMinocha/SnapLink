@@ -85,7 +85,7 @@ class ScrollGesture:
     Detects an index finger pointing up gesture and translates vertical hand movement
     into scroll up/down commands.
     """
-    def __init__(self, movement_threshold=20, pointing_up_ratio_threshold=0.7):
+    def __init__(self, movement_threshold=30, pointing_up_ratio_threshold=0.7):
         """
         Initializes the Scroll Gesture detector.
 
@@ -99,6 +99,11 @@ class ScrollGesture:
         self.movement_threshold = movement_threshold
         self.pointing_up_ratio_threshold = pointing_up_ratio_threshold
 
+        self.is_scrolling = False
+        self.initial_scroll_y = None
+
+    def reset(self):
+        """Resets the internal state of the gesture detector."""
         self.is_scrolling = False
         self.initial_scroll_y = None
 
@@ -147,7 +152,8 @@ class ScrollGesture:
 
                 if delta_y > self.movement_threshold:
                     action = 'SCROLL_UP'
-                elif delta_y < -self.movement_threshold:
+                # decreasing the movement threshold for scrolling down
+                elif delta_y < -self.movement_threshold+13:
                     action = 'SCROLL_DOWN'
         else:
             self.is_scrolling = False

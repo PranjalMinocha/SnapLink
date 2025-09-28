@@ -1,5 +1,6 @@
 import pyautogui
 import cv2
+import requests
 
 from util.gesture_recognizer import GestureRecognizer
 from util.auth_face import authenticate_face
@@ -12,7 +13,15 @@ def perform_action(action):
     elif action == 'VOLUME_DOWN': pyautogui.press('volumedown')
     elif action == 'SCROLL_UP': pyautogui.scroll(100)
     elif action == 'SCROLL_DOWN': pyautogui.scroll(-100)
-    elif action == 'DND': pyautogui.press('volumemute')
+    elif action == 'DND': 
+        pyautogui.press('volumemute')
+        req_json = {
+            "device_id": "purvansh-iphone",
+            "action": "set_dnd",
+            "value": True
+        }
+        requests.post("http://127.0.0.1:8000/command/send", json=req_json)
+
 
 if __name__ == "__main__":
     # --- Main Application Loop ---
