@@ -1,7 +1,27 @@
-# Ignore the custom virtual environment folder
-tsl/
-.idea/
-model.onnx/
-.venv/
-src/__pycache__/
+# Python build artifacts and caches
+# --------------------------------------------------------------------
+build/
+dist/
+*.egg-info/
+__pycache__
+*.pyc
+*.pyo
+*.pyd
 template.json
+
+# Virtual Environment
+# --------------------------------------------------------------------
+tsl/
+.venv/
+venv/
+
+# IDE and OS files
+# --------------------------------------------------------------------
+.idea/
+.vscode/
+.DS_Store
+
+# Secret files
+# --------------------------------------------------------------------
+.env
+*.env
