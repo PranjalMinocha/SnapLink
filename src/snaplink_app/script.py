@@ -11,8 +11,8 @@ def perform_action(action):
         return
     if action == 'VOLUME_UP': pyautogui.press('volumeup')
     elif action == 'VOLUME_DOWN': pyautogui.press('volumedown')
-    elif action == 'SCROLL_UP': pyautogui.scroll(100)
-    elif action == 'SCROLL_DOWN': pyautogui.scroll(-100)
+    elif action == 'SCROLL_UP': pyautogui.scroll(-150)
+    elif action == 'SCROLL_DOWN': pyautogui.scroll(150)
     elif action == 'DND': 
         pyautogui.press('volumemute')
         req_json = {
@@ -20,17 +20,14 @@ def perform_action(action):
             "action": "set_dnd",
             "value": 0
         }
-        # requests.post("https://unburnt-franklin-exciting.ngrok-free.dev/command/send", json=req_json)
+        requests.post("https://unburnt-franklin-exciting.ngrok-free.dev/command/send", json=req_json)
     elif action == 'ROCK_AND_ROLL':
-        print("🤘 Rock and Roll gesture detected! Sending POST request...")
+        print("Rock and Roll gesture detected! Sending POST request...")
         req_json = {
-            "device_id": "my-android-phone",
-            "action": "rock_and_roll_triggered",
-            "timestamp": "2025-09-28T00:00:00Z"
+            "message": "sound" 
         }
-        
-        # requests.post("https://unburnt-franklin-exciting.ngrok-free.dev/command/send", json=req_json)
-        
+
+        # requests.post("http://127.0.0.1:8000/alert", json=req_json)
 
 
 if __name__ == "__main__":
