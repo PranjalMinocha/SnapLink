@@ -1,4 +1,16 @@
-# Ignore the custom virtual environment folder
-tsl/
-.idea/
+# Python build artifacts
+# --------------------------------------------------------------------
+build/
+dist/
 *.egg-info/
+__pycache__/
+
+# Virtual Environment
+# --------------------------------------------------------------------
+tsl/
+
+# IDE and OS files
+# --------------------------------------------------------------------
+.idea/
+.vscode/
+.DS_Store
