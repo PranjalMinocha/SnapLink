@@ -24,3 +24,7 @@ venv/
 # --------------------------------------------------------------------
 .env
 *.env
+src/__pycache__/
+*/__pycache__/
+template.json
+model.onnx/
