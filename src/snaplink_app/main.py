@@ -8,7 +8,7 @@ COMMAND_QUEUE = {}
 
 app = FastAPI(title="SnapLink API")
 
-
+#User key and app token used for pushover messaging app
 USER_KEY = "uzmshrgkdjw8dxbvm2d8poeykc5x6n"
 APP_TOKEN = "axcch6rp1wpjft2f48xvjj7fiio2nw"  
 
